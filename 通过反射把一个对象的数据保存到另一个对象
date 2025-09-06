@@ -1,0 +1,46 @@
+    public static <T> T beanToBeanMatch( Object src,T dst) {
+        try {
+            if (src != null) {
+                Class<?> clsOld = src.getClass();
+                Field[] fieldsOld = clsOld.getDeclaredFields();
+                Field[] fields = dst.getClass().getDeclaredFields();
+                for (Field fieldOld : fieldsOld) {
+                    String fieldNameOld = fieldOld.getName().replace("-", "");
+                    fieldNameOld = fieldNameOld.replace("_", "");
+                    int modOld = fieldOld.getModifiers();
+                    if (!Modifier.isFinal(modOld)) {
+                        fieldOld.setAccessible(true);
+                        for (Field field : fields) {
+                            String fieldName = field.getName().replace("-", "");
+                            fieldName = field.getName().replace("_", "");
+                            int mod = field.getModifiers();
+                            if ( !Modifier.isFinal(mod)) {
+                                field.setAccessible(true);
+                                if (fieldNameOld.equalsIgnoreCase(fieldName)) {
+                                    if(field.getType().equals(fieldOld.getType()) || field.getType().getName().equals(fieldOld.getType().getName())){
+                                        field.set(dst, fieldOld.get(src));
+                                    }else{
+                                        if(ObjectUtil.isNotNull(fieldOld.get(src)) && ObjectUtil.isNotEmpty(fieldOld.get(src))){
+                                            if(field.getType().getName().contains("double") || field.getType().getName().contains("Double")  ){
+                                                field.set(dst, Double.valueOf(fieldOld.get(src).toString()));
+                                            }
+                                            else if(field.getType().getName().contains("Long")||field.getType().getName().contains("long")){
+                                                field.set(dst, Long.valueOf(fieldOld.get(src).toString()));
+                                            }
+                                            else if(field.getType().getName().contains("int") || field.getType().getName().contains("Integer") ){
+                                                field.set(dst, Integer.valueOf(fieldOld.get(src).toString()));
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("beanTobeanLowerCase err"+e.getMessage(),e);
+        }
+        return dst;
+    }
